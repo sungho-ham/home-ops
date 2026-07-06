@@ -1,0 +1,18 @@
+# Exclude dynamic runtimes but keep the directory structure via .gitkeep
+**/data/*
+!**/data/.gitkeep
+
+**/log/*
+!**/log/.gitkeep
+
+influxdb/config/*
+!influxdb/config/.gitkeep
+
+# Security & Credentials
+.env
+node-red/data/flows_cred.json
+
+# OS Garbage
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,57 @@
+services:
+  # 1. Mosquitto (MQTT Broker)
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: m_mosquitto
+    restart: unless-stopped
+    ports:
+      - "${HOST_MQTT_PORT}:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  # 2. InfluxDB (Time Series Database)
+  influxdb:
+    image: influxdb:2.7
+    container_name: m_influxdb
+    restart: unless-stopped
+    environment:
+      - INFLUXDB_ADMIN_USER=${INFLUX_USER}
+      - INFLUXDB_ADMIN_PASSWORD=${INFLUX_PW}
+      - INFLUXDB_ADMIN_ORG=${INFLUX_ORG}
+      - INFLUXDB_ADMIN_BUCKET=${INFLUX_BUCKET}
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
+
+  # 3. Node-RED (Logic & Automation)
+  nodered:
+    image: nodered/node-red:latest
+    container_name: m_nodered
+    restart: unless-stopped
+    user: "${NAS_UID}:${NAS_GID}"
+    ports:
+      - "${HOST_NODERED_PORT}:1880"
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - ./node-red/data:/data
+    depends_on:
+      - mosquitto
+      - influxdb
+
+  # 4. Grafana (Visualization Dashboard)
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: m_grafana
+    restart: unless-stopped
+    user: "${NAS_UID}:${NAS_GID}"
+    ports:
+      - "${HOST_GRAFANA_PORT}:3000"
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+    depends_on:
+      - influxdb
