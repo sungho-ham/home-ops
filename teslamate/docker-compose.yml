@@ -2,16 +2,12 @@ services:
   teslamate:
     image: teslamate/teslamate:latest
     restart: always
-	entrypoint: >
-      /bin/sh -c "
-      export DATABASE_PASS=\$$(cat /run/secrets/tm_db_password) &&
-      exec /opt/app/bin/teslamate start
-      "
     environment:
       - ENCRYPTION_KEY=secretkey
       - DATABASE_USER=teslamate
       - DATABASE_NAME=teslamate
       - DATABASE_HOST=database
+      - DATABASE_PASS=${DATABASE_PASS}
       - MQTT_HOST=mosquitto
       - TZ=Asia/Seoul
       - VIRTUAL_HOST=localhost
@@ -34,8 +30,8 @@ services:
     restart: always
     environment:
       - POSTGRES_USER=teslamate
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
-      - POSTGRES_DB_FILE=teslamate
+      - POSTGRES_PASSWORD=${DATABASE_PASS}
+      - POSTGRES_DB=teslamate
       - TZ=Asia/Seoul
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
@@ -51,7 +47,7 @@ services:
     restart: always
     environment:
       - DATABASE_USER=teslamate
-      - GF_DATABASE_PASSWORD_PATH=/run/secrets/db_password
+      - DATABASE_PASSWORD=${DATABASE_PASS}
       - DATABASE_NAME=teslamate
       - DATABASE_HOST=database
       - TZ=Asia/Seoul 
@@ -76,7 +72,3 @@ services:
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
 
-
-secrets:
-  db_password:
-    file: /dev/shm/.tmp_postgres_pw
